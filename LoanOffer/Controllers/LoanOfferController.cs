@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
+using System.Net;
 
 namespace LoanOffer.Controllers
 {
@@ -28,7 +29,7 @@ namespace LoanOffer.Controllers
 
 
         [HttpPost("GetLoans")]
-        public async Task<CalculatedLoan> GetLoans([FromBody]LoanApplication loanApplication)
+        public async Task<CalculatedLoan> GetLoans([FromBody] LoanApplication loanApplication)
         {
             calculatedLoan = new CalculatedLoan();
 
@@ -41,7 +42,7 @@ namespace LoanOffer.Controllers
                 var tasks = new List<Task>();
                 foreach (var client in loanApplication.Clients)
                 {
-                    tasks.Add(Task.Run( () =>
+                    tasks.Add(Task.Run(() =>
                     {
                         CalculateLoan(client, calculatedLoan);
                     }));
@@ -67,7 +68,7 @@ namespace LoanOffer.Controllers
             LoanApplication loanApplication = JsonConvert.DeserializeObject<LoanApplication>(json);
 
             if (loanApplication == null)
-                throw new Exception("Error: LoanOfferController -> GetLoans -> nullable loanApplication");
+                throw new Exception("Error: LoanOfferController -> GetLoansFromFileJson -> nullable loanApplication");
 
             try
             {
@@ -87,7 +88,7 @@ namespace LoanOffer.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception("Exception in LoanOfferController -> GetLoans", ex);
+                throw new Exception("Exception in LoanOfferController -> GetLoansFromFileJson", ex);
             }
 
             return calculatedLoan;
@@ -98,6 +99,56 @@ namespace LoanOffer.Controllers
             double price = logicService.LoadRules(client.Age, client.RequestingLoan, client.PeriodInMonths);
 
             calculatedLoan.ClientLoanInfo.Add(helpService.CreateClientLoanInfo(client, price));
+        }
+
+        [HttpPut("PutClientToLocalJson")]
+        public IActionResult PutClientToLocalJson(Client client)
+        {
+            string json = fileService.ReadFromFile("loanrequest");
+            LoanApplication loanApplication = JsonConvert.DeserializeObject<LoanApplication>(json);
+
+            if (loanApplication == null)
+                throw new Exception("Error: LoanOfferController -> PutClientToLocalJson -> nullable loanApplication");
+
+            loanApplication.Clients.Add(client);
+            string new_json = JsonConvert.SerializeObject(loanApplication);
+
+            fileService.WriteToFile(new_json, "loanrequest");
+            return Ok();
+        }
+
+        [HttpDelete("PutClientToLocalJson/" + "{ClientId}")]
+        public IActionResult DeleteClientFromLocalJson(int ClientId)
+        {
+            string json = fileService.ReadFromFile("loanrequest");
+            LoanApplication loanApplication = JsonConvert.DeserializeObject<LoanApplication>(json);
+
+            Client clientToRemove = new Client();
+
+            if (loanApplication == null)
+                throw new Exception("Error: LoanOfferController -> DeleteProduct -> nullable loanApplication");
+
+            foreach(Client client in loanApplication.Clients)
+            {
+                if (client.Id == ClientId)
+                    clientToRemove = client;
+            }
+
+            loanApplication.Clients.Remove(clientToRemove);
+
+            string new_json = JsonConvert.SerializeObject(loanApplication);
+
+            fileService.WriteToFile(new_json, "loanrequest");
+            return Ok();
+        }
+
+        [HttpGet("ShowLocalJson")]
+        public string ShowLocalJson()
+        {
+            string json = fileService.ReadFromFile("loanrequest");
+
+            return json;
+
         }
 
     }

@@ -41,7 +41,7 @@ namespace LoanOffer.Services
             }
         }
 
-        public void WriteToFile(string giphyURL, string fileName)
+        public void WriteToFile(string json, string fileName)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace LoanOffer.Services
 
                 string fullpath = GetFullPath(fileName);
 
-                File.WriteAllText(fullpath, giphyURL);
+                File.WriteAllText(fullpath, json);
             }
             catch (Exception ex)
             {
