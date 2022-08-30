@@ -3,23 +3,31 @@ using System.Linq.Expressions;
 
 namespace LoanOffer.Services
 {
-    public class LoadLogicService: ILoadLogic
+    public class LoanLogicService: ILoadLogic
     {
         private IConfiguration configuration;
         private static double PrimeRate;
-        private double FixedRate;
-        private int MinMountsLoad;
-        private double MonthLimitRate;
-        private double returnPrice = 0;
-        public LoadLogicService(IConfiguration _configuration)
+        private static double FixedRate;
+        private static int MinMountsLoad;
+        private static double MonthLimitRate;
+        private static double returnPrice = 0;
+        public LoanLogicService(IConfiguration _configuration)
         {
             configuration = _configuration;
             PrimeRate = Convert.ToDouble(configuration.GetSection("LoanLogic:Prime_Rate").Value);
             MinMountsLoad = Convert.ToInt16(configuration.GetSection("LoanLogic:Min_Mounts_Load").Value);
             MonthLimitRate = Convert.ToDouble(configuration.GetSection("LoanLogic:Month_Limit_Rate").Value);
         }
+
+        private void RefreshRules()
+        {
+            FixedRate = 0;
+            returnPrice = 0;
+        } 
         public double LoadRules(int age, double[] requestingLoan, int periodInMonths)
         {
+            RefreshRules();
+
             try
             {
                 foreach (double rLoan in requestingLoan)

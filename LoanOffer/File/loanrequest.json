@@ -1,0 +1,28 @@
+{
+  "clients": [
+    {
+      "id": 1111,
+      "firstName": "alex",
+      "lastName": "melnik",
+      "age": 20,
+      "requestingLoan": [ 15000 ],
+      "periodInMonths": 15
+    },
+    {
+      "id": 14007,
+      "firstName": "boris",
+      "lastName": "abdul",
+      "age": 21,
+      "requestingLoan": [ 4500 ],
+      "periodInMonths": 13
+    },
+    {
+      "id": 5545,
+      "firstName": "alfred",
+      "lastName": "belkin",
+      "age": 31,
+      "requestingLoan": [ 5000, 5500 ],
+      "periodInMonths": 12
+    }
+  ]
+}

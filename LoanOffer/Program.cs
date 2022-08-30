@@ -1,6 +1,6 @@
+
 using LoanOffer.Interfaces;
 using LoanOffer.Services;
-using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,8 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Add Services
-builder.Services.AddTransient<ILoadLogic, LoadLogicService>();
+builder.Services.AddTransient<ILoadLogic, LoanLogicService>();
 builder.Services.AddTransient<IHelp, HelpService>();
+builder.Services.AddSingleton<IFile, FileService>();
 
 // Add Service CORS
 builder.Services.AddCors();
