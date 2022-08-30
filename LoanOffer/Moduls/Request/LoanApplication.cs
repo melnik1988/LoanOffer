@@ -4,6 +4,6 @@ namespace LoanOffer.Moduls.Request
 {
     public class LoanApplication
     {
-        public List<Client> Clients { get; set; }
+        public List<Client>? Clients { get; set; }
     }
 }

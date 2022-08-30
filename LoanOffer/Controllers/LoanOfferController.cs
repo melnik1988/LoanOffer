@@ -1,6 +1,12 @@
-﻿using LoanOffer.Moduls.Request;
+﻿using LoanOffer.Interfaces;
+using LoanOffer.Moduls.Classes;
+using LoanOffer.Moduls.Request;
+using LoanOffer.Moduls.Responce;
+using LoanOffer.Services;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
 
 namespace LoanOffer.Controllers
 {
@@ -8,28 +14,33 @@ namespace LoanOffer.Controllers
     [ApiController]
     public class LoanOfferController : ControllerBase
     {
-        //private IFile fileService;
-        private IConfiguration configuration;
-        public LoanOfferController(IConfiguration _configuration)
+        private ILoadLogic logicService;
+        private IHelp helpService;
+        private CalculatedLoan calculatedLoan;
+        public LoanOfferController(ILoadLogic _LogicService, IHelp _helpService)
         {
-            configuration = _configuration;
+            logicService = _LogicService;
+            helpService = _helpService;
         }
 
 
-        [HttpGet("{value}")]
-        public async Task<string> GetLoans(string value)
+        [HttpPost]
+        public async Task<CalculatedLoan> GetLoans([FromBody]LoanApplication loanApplication)
         {
-            var _loans = JsonConvert.DeserializeObject<LoanApplication>(value);
+            calculatedLoan = new CalculatedLoan();
+
+            if (loanApplication == null)
+                throw new Exception("Error: LoanOfferController -> GetLoans -> nullable value");
 
             try
             {
                 // Parallel
                 var tasks = new List<Task>();
-                foreach (var s in subs)
+                foreach (var client in loanApplication.Clients)
                 {
-                    tasks.Add(Task.Run(async () =>
+                    tasks.Add(Task.Run( () =>
                     {
-                        await GetGiphys(apiKey, giphys_json, s);
+                        CalculateLoan(client, calculatedLoan);
                     }));
                 }
                 await Task.WhenAll(tasks);
@@ -37,10 +48,17 @@ namespace LoanOffer.Controllers
             }
             catch (Exception ex)
             {
-                throw new Exception("Exception in SearchGiphy", ex);
+                throw new Exception("Exception in LoanOfferController -> GetLoans", ex);
             }
 
-            return JsonConvert.SerializeObject(giphys_json);
+            return calculatedLoan;
+        }
+
+        private void CalculateLoan(Client client, CalculatedLoan calculatedLoan)
+        {
+            double price = logicService.LoadRules(client.Age, client.RequestingLoan, client.PeriodInMonths);
+
+            calculatedLoan.ClientLoanInfo.Add(helpService.CreateClientLoanInfo(client, price));
         }
     }
 }
